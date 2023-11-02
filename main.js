@@ -18,10 +18,14 @@ let strikes = 0;
 let lastClickTime;
 let gameOverFlag = false;
 
+//Typing practice vars
+let word;
+let userInput = "";
+let chatBoxColor = 255;
+
 function setup() {
   createCanvas(400, 400);
-  resetBall();
-  lastClickTime = millis();
+  textAlign(CENTER, CENTER);
 }
 
 //Switches between screens
@@ -41,11 +45,32 @@ function draw() {
   }
 }
 
+//Typing Setup
+function screen2Setup() {
+  createCanvas(400, 400);
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  pickRandomWord();
+}
+//Sorting Setup
+function screen3Setup() {
+  
+}
+//Progress Setup
+function screen4Setup() {
+  
+}
+//Moving Ball Setup
+function screen5Setup() {
+  resetBall();
+  lastClickTime = millis();
+}
+
 //Home screen
 function screen1() {
   background(204, 128, 255);
   textSize(25);
-  text('Rehabilitation App', 100, 50);
+  text('Rehabilitation App', 200, 50);
   hover();
   if (hover1) fill(175);
   else fill(255);
@@ -61,10 +86,10 @@ function screen1() {
   triangle(210, 300, 260, 200, 310, 300);
   fill(0);
   textSize(16);
-  text('Typing', 178, 160);
-  text('Sorting', 115, 270);
-  text('Progress', 170, 230);
-  text('Moving \n   Ball', 235, 270);
+  text('Typing', 200, 160);
+  text('Sorting', 140, 270);
+  text('Progress', 200, 230);
+  text('Moving \nBall', 263, 270);
   hoverReset();
 }
 
@@ -90,14 +115,49 @@ function pointInTriangle(x, y, vertices) {
 
 //Typing exercise
 function screen2() {
-  background(255, 255, 255);
-  textSize(25);
-  text('Typing', 100, 50);
+  background(240);
+  fill(0);
+  text(word, width / 2, height / 2 - 20);
+  fill(chatBoxColor);
+  rect(50, height / 2, 300, 40);
+  fill(0);
+  text(userInput, width / 2, height / 2 + 20);
   button = createButton('Back');
   button.size(100,50);
   button.position(290, 340);
   button.mousePressed(mode0);
 }
+
+function pickRandomWord() {
+  let words = ["PRECISION", "COMPUTER", "PROGRAMMING", "DEVELOPMENT", "INTERFACE"];
+  word = random(words);
+}
+
+function keyPressed() {
+  if (keyCode === BACKSPACE) {
+    userInput = userInput.slice(0, -1);
+  } else if (keyCode === ENTER) {
+    checkInput();
+  } else if (keyCode !== SHIFT && keyCode !== CONTROL && keyCode !== ALT) {
+    userInput += key;
+  }
+}
+
+function checkInput() {
+  if (userInput === word) {
+    chatBoxColor = color(0, 255, 0); 
+  } else {
+    chatBoxColor = color(255, 0, 0);
+  }
+  setTimeout(resetChatBox, 1000);
+}
+function resetChatBox() {
+  userInput = "";
+  chatBoxColor = 255;
+  pickRandomWord();
+}
+
+//End Typing exercise
 
 //Sorting exercise
 function screen3() {
@@ -129,8 +189,8 @@ function screen5() {
   ellipse(ballX, ballY, ballSize, ballSize);
   textSize(24);
   fill('white');
-  text(`Points: ${points}`, 20, 30);
-  text(`Strikes: ${strikes}`, 20, 60);
+  text(`Points: ${points}`, 60, 30);
+  text(`Strikes: ${strikes}`, 60, 60);
   if (gameOverFlag) {
     fill(255);
     rect(width / 2 - 60, height / 2 + 50, 120, 40); 
@@ -216,15 +276,19 @@ function mousePressed(){
     if (pointInTriangle(mouseX, mouseY, tri1)) {
       // Clicked inside the first triangle
       mode = 1; // Change the mode to screen 2
+      screen2Setup();
     } else if (pointInTriangle(mouseX, mouseY, tri2)) {
       // Clicked inside the second triangle
       mode = 2; // Change the mode to screen 3
+      screen3Setup();
     } else if (pointInTriangle(mouseX, mouseY, tri3)) {
       // Clicked inside the third triangle
       mode = 3; // Change the mode to screen 4
+      screen4Setup();
     } else if (pointInTriangle(mouseX, mouseY, tri4)) {
       // Clicked inside the fourth triangle
       mode = 4; // Change the mode to screen 5
+      screen5Setup();
     }
   }
   if (mode == 4) {
