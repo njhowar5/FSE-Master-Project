@@ -162,15 +162,18 @@ function checkClick() {
   let d = dist(mouseX, mouseY, ballX, ballY);
   if (mouseIsPressed && d < ballSize / 2) {
     if ((isGreen && d < ballSize / 2) || (!isGreen && d >= ballSize / 2)) {
-      points++;
-      resetBall(); 
+      points++; 
       lastClickTime = millis(); 
     } else {
       strikes++;
+      lastClickTime = millis();
     }
     if (strikes >= 3) {
       gameOverFlag = true; 
       noLoop(); 
+    }
+    else{
+      resetBall();
     }
   } else {
     if (millis() - lastClickTime > 4000 && !isGreen) {
