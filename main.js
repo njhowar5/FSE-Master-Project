@@ -305,7 +305,9 @@ function mousePressed(){
 
 //resets back to main screen
 function mode0() {
+  if (mode == 4) {
+   resetBallGame();   
+  }
   mode = 0;
-  resetBallGame();
   removeElements();
 }
