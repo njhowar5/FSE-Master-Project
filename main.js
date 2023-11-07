@@ -1,13 +1,11 @@
 //Triangle coordinates
 var mode = 0;
-const tri1 = [150, 190, 200, 90, 250, 190];
-var hover1 = false;
-const tri2 = [90, 300, 140, 200, 190, 300];
-var hover2 = false;
-const tri3 = [150, 200, 200, 300, 250, 200];
-var hover3 = false;
-const tri4 = [210, 300, 260, 200, 310, 300];
-var hover4 = false;
+let triangles = [
+  { points: [150, 190, 200, 90, 250, 190], hover: false, setupFunction: screen2Setup },
+  { points: [90, 300, 140, 200, 190, 300], hover: false, setupFunction: screen3Setup },
+  { points: [150, 200, 200, 300, 250, 200], hover: false, setupFunction: screen4Setup },
+  { points: [210, 300, 260, 200, 310, 300], hover: false, setupFunction: screen5Setup }
+];
 
 //Moving ball vars
 let ballSize = 50;
@@ -47,18 +45,16 @@ function draw() {
 
 //Typing Setup
 function screen2Setup() {
-  createCanvas(400, 400);
-  textAlign(CENTER, CENTER);
   textSize(32);
   pickRandomWord();
 }
 //Sorting Setup
 function screen3Setup() {
-  
+
 }
 //Progress Setup
 function screen4Setup() {
-  
+
 }
 //Moving Ball Setup
 function screen5Setup() {
@@ -72,18 +68,14 @@ function screen1() {
   textSize(25);
   text('Rehabilitation App', 200, 50);
   hover();
-  if (hover1) fill(175);
-  else fill(255);
-  triangle(150, 190, 200, 90, 250, 190);
-  if (hover2) fill(175);
-  else fill(255);
-  triangle(90, 300, 140, 200, 190, 300);
-  if (hover3) fill(175);
-  else fill(255);
-  triangle(150, 200, 200, 300, 250, 200);
-  if (hover4) fill(175);
-  else fill(255);
-  triangle(210, 300, 260, 200, 310, 300);
+  for (let i = 0; i < triangles.length; i++) {
+    if (triangles[i].hover) {
+      fill(175);
+    } else {
+      fill(255);
+    }
+    triangle(...triangles[i].points); // Spread the points array
+  }
   fill(0);
   textSize(16);
   text('Typing', 200, 160);
@@ -249,6 +241,7 @@ function checkClick() {
 }
 
 //End Moving ball exercise
+
 //checks if mouse is hovering over screen buttons
 function buttonCheck(x,y,w,h){
   if ((mouseX >= x && mouseX <= x + w) && (mouseY >= y && mouseY <= y + h)) return true;
@@ -256,44 +249,29 @@ function buttonCheck(x,y,w,h){
 }
 
 //To check if the mouse is hovering over the triangles
-function hover(){
-  if (pointInTriangle(mouseX, mouseY, tri1)) {
-    hover1 = true;
-  } else if (pointInTriangle(mouseX, mouseY, tri2)) {
-    hover2 = true;
-  } else if (pointInTriangle(mouseX, mouseY, tri3)) {
-    hover3 = true;
-  } else if (pointInTriangle(mouseX, mouseY, tri4)) {
-    hover4 = true;
+function hover() {
+  for (let i = 0; i < triangles.length; i++) {
+    if (pointInTriangle(mouseX, mouseY, triangles[i].points)) {
+      triangles[i].hover = true;
+    }
   }
 }
 
+
 //reset to check hover again
-function hoverReset(){
-  hover1 = false;
-  hover2 = false;
-  hover3 = false;
-  hover4 = false;
+function hoverReset() {
+  for (let i = 0; i < triangles.length; i++) {
+    triangles[i].hover = false;
+  }
 }
 
 function mousePressed(){
   if (mode == 0) {
-    if (pointInTriangle(mouseX, mouseY, tri1)) {
-      // Clicked inside the first triangle
-      mode = 1; // Change the mode to screen 2
-      screen2Setup();
-    } else if (pointInTriangle(mouseX, mouseY, tri2)) {
-      // Clicked inside the second triangle
-      mode = 2; // Change the mode to screen 3
-      screen3Setup();
-    } else if (pointInTriangle(mouseX, mouseY, tri3)) {
-      // Clicked inside the third triangle
-      mode = 3; // Change the mode to screen 4
-      screen4Setup();
-    } else if (pointInTriangle(mouseX, mouseY, tri4)) {
-      // Clicked inside the fourth triangle
-      mode = 4; // Change the mode to screen 5
-      screen5Setup();
+    for (let i = 0; i < triangles.length; i++) {
+      if (pointInTriangle(mouseX, mouseY, triangles[i].points)) {
+        mode = i + 1;
+        triangles[i].setupFunction();
+      }
     }
   }
   if (mode == 4) {
