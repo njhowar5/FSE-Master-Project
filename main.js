@@ -205,7 +205,8 @@ function screen5() {
   button.mousePressed(mode0);
 }
 
-function resetGame() {
+//reset moving ball game
+function resetBallGame() {
   points = 0;
   strikes = 0;
   resetBall();
@@ -213,11 +214,15 @@ function resetGame() {
   gameOverFlag = false;
   loop(); 
 }
+
+//reset the moving ball
 function resetBall() {
   ballX = random(width - ballSize);
   ballY = random(height - ballSize);
   isGreen = random() > 0.5;
 }
+
+//To check if the ball in moving ball is clicked
 function checkClick() {
   let d = dist(mouseX, mouseY, ballX, ballY);
   if (mouseIsPressed && d < ballSize / 2) {
@@ -229,7 +234,7 @@ function checkClick() {
       lastClickTime = millis();
     }
     if (strikes >= 3) {
-      gameOverFlag = true; 
+      gameOverFlag = true;
       noLoop(); 
     }
     else{
@@ -293,12 +298,14 @@ function mousePressed(){
   }
   if (mode == 4) {
     if (gameOverFlag && mouseX > width / 2 - 60 && mouseX < width / 2 + 60 && mouseY > height / 2 + 50 && mouseY < height / 2 + 90) {
-    resetGame(); 
+    resetBallGame(); 
     }
   }
 }
 
+//resets back to main screen
 function mode0() {
   mode = 0;
+  resetBallGame();
   removeElements();
 }
