@@ -10,6 +10,7 @@ let triangles = [
 //Moving ball vars
 let ballSize = 50;
 let ballX, ballY;
+let ballSpeed;
 let isGreen;
 let points = 0;
 let strikes = 0;
@@ -58,7 +59,7 @@ function screen4Setup() {
 }
 //Moving Ball Setup
 function screen5Setup() {
-  resetBall();
+  resetBallGame();
   lastClickTime = millis();
 }
 
@@ -179,6 +180,7 @@ function screen5() {
   checkClick();
   fill(isGreen ? 'green' : 'red');
   ellipse(ballX, ballY, ballSize, ballSize);
+  ballX += ballSpeed;
   textSize(24);
   fill('white');
   text(`Points: ${points}`, 60, 30);
@@ -201,6 +203,7 @@ function screen5() {
 function resetBallGame() {
   points = 0;
   strikes = 0;
+  ballSpeed = 0; 
   resetBall();
   lastClickTime = millis();
   gameOverFlag = false;
@@ -209,8 +212,9 @@ function resetBallGame() {
 
 //reset the moving ball
 function resetBall() {
-  ballX = random(width - ballSize);
+  ballX = random([0,400]);
   ballY = random(height - ballSize);
+  ballSpeed = (Math.abs(ballSpeed) + 0.5) * ((ballX == 0)? 1 : -1);
   isGreen = random() > 0.5;
 }
 
