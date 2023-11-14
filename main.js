@@ -8,19 +8,26 @@ let triangles = [
 ];
 
 //Moving ball vars
-let ballSize = 50;
-let ballX, ballY;
-let ballSpeed;
-let isGreen;
-let points = 0;
-let strikes = 0;
-let lastClickTime;
-let gameOverFlag = false;
+let ballGame = {
+  ball: {
+    size: 50,
+    x: 0,
+    y: 0,
+    speed: 0,
+  },
+  isGreen: false,
+  points: 0,
+  strikes: 0,
+  lastClickTime: 0,
+  gameOverFlag: false,
+};
 
 //Typing practice vars
-let word;
-let userInput = "";
-let chatBoxColor = 255;
+let typing = {
+    word: '',
+    userInput: '',
+    chatBoxColor: 255,
+};
 
 function setup() {
   createCanvas(400, 400);
@@ -60,7 +67,7 @@ function screen4Setup() {
 //Moving Ball Setup
 function screen5Setup() {
   resetBallGame();
-  lastClickTime = millis();
+  ballGame.lastClickTime = millis();
 }
 
 //Home screen
@@ -110,11 +117,11 @@ function pointInTriangle(x, y, vertices) {
 function screen2() {
   background(240);
   fill(0);
-  text(word, width / 2, height / 2 - 20);
-  fill(chatBoxColor);
+  text(typing.word, width / 2, height / 2 - 20);
+  fill(typing.chatBoxColor);
   rect(50, height / 2, 300, 40);
   fill(0);
-  text(userInput, width / 2, height / 2 + 20);
+  text(typing.userInput, width / 2, height / 2 + 20);
   button = createButton('Back');
   button.size(100,50);
   button.position(290, 340);
@@ -123,30 +130,30 @@ function screen2() {
 
 function pickRandomWord() {
   let words = ["PRECISION", "COMPUTER", "PROGRAMMING", "DEVELOPMENT", "INTERFACE"];
-  word = random(words);
+  typing.word = random(words);
 }
 
 function keyPressed() {
   if (keyCode === BACKSPACE) {
-    userInput = userInput.slice(0, -1);
+    typing.userInput = typing.userInput.slice(0, -1);
   } else if (keyCode === ENTER) {
     checkInput();
   } else if (keyCode !== SHIFT && keyCode !== CONTROL && keyCode !== ALT) {
-    userInput += key;
+    typing.userInput += key;
   }
 }
 
 function checkInput() {
-  if (userInput === word) {
-    chatBoxColor = color(0, 255, 0); 
+  if (typing.userInput === typing.word) {
+    typing.chatBoxColor = color(0, 255, 0); 
   } else {
-    chatBoxColor = color(255, 0, 0);
+    typing.chatBoxColor = color(255, 0, 0);
   }
   setTimeout(resetChatBox, 1000);
 }
 function resetChatBox() {
-  userInput = "";
-  chatBoxColor = 255;
+  typing.userInput = "";
+  typing.chatBoxColor = 255;
   pickRandomWord();
 }
 
@@ -178,14 +185,14 @@ function screen4() {
 function screen5() {
   background(0); 
   checkClick();
-  fill(isGreen ? 'green' : 'red');
-  ellipse(ballX, ballY, ballSize, ballSize);
-  ballX += ballSpeed;
+  fill(ballGame.isGreen ? 'green' : 'red');
+  ellipse(ballGame.ball.x, ballGame.ball.y, ballGame.ball.size, ballGame.ball.size);
+  ballGame.ball.x += ballGame.ball.speed;
   textSize(24);
   fill('white');
-  text(`Points: ${points}`, 60, 30);
-  text(`Strikes: ${strikes}`, 60, 60);
-  if (gameOverFlag) {
+  text(`Points: ${ballGame.points}`, 60, 30);
+  text(`Strikes: ${ballGame.strikes}`, 60, 60);
+  if (ballGame.gameOverFlag) {
     fill(255);
     rect(width / 2 - 60, height / 2 + 50, 120, 40); 
     fill(0); 
@@ -201,45 +208,45 @@ function screen5() {
 
 //reset moving ball game
 function resetBallGame() {
-  points = 0;
-  strikes = 0;
-  ballSpeed = 0; 
+  ballGame.points = 0;
+  ballGame.strikes = 0;
+  ballGame.ball.speed = 0; 
   resetBall();
-  lastClickTime = millis();
-  gameOverFlag = false;
+  ballGame.lastClickTime = millis();
+  ballGame.gameOverFlag = false;
   loop(); 
 }
 
 //reset the moving ball
 function resetBall() {
-  ballX = random([0,400]);
-  ballY = random(height - ballSize);
-  ballSpeed = (Math.abs(ballSpeed) + 0.5) * ((ballX == 0)? 1 : -1);
-  isGreen = random() > 0.5;
+  ballGame.ball.x = random([0,400]);
+  ballGame.ball.y = random(height - ballGame.ball.size);
+  ballGame.ball.speed = (Math.abs(ballGame.ball.speed) + 0.5) * ((ballGame.ball.x == 0)? 1 : -1);
+  ballGame.isGreen = random() > 0.5;
 }
 
 //To check if the ball in moving ball is clicked
 function checkClick() {
-  let d = dist(mouseX, mouseY, ballX, ballY);
-  if (mouseIsPressed && d < ballSize / 2) {
-    if ((isGreen && d < ballSize / 2) || (!isGreen && d >= ballSize / 2)) {
-      points++; 
-      lastClickTime = millis(); 
+  let d = dist(mouseX, mouseY, ballGame.ball.x, ballGame.ball.y);
+  if (mouseIsPressed && d < ballGame.ball.size / 2) {
+    if ((ballGame.isGreen && d < ballGame.ball.size / 2) || (!ballGame.isGreen && d >= ballGame.ball.size / 2)) {
+      ballGame.points++; 
+      ballGame.lastClickTime = millis(); 
     } else {
-      strikes++;
-      lastClickTime = millis();
+      ballGame.strikes++;
+      ballGame.lastClickTime = millis();
     }
-    if (strikes >= 3) {
-      gameOverFlag = true;
+    if (ballGame.strikes >= 3) {
+      ballGame.gameOverFlag = true;
       noLoop(); 
     }
     else{
       resetBall();
     }
   } else {
-    if (millis() - lastClickTime > 4000 && !isGreen) {
+    if (millis() - ballGame.lastClickTime > 4000 && !ballGame.isGreen) {
       resetBall(); 
-      lastClickTime = millis(); 
+      ballGame.lastClickTime = millis(); 
     }
   }
 }
@@ -279,7 +286,7 @@ function mousePressed(){
     }
   }
   if (mode == 4) {
-    if (gameOverFlag && mouseX > width / 2 - 60 && mouseX < width / 2 + 60 && mouseY > height / 2 + 50 && mouseY < height / 2 + 90) {
+    if (ballGame.gameOverFlag && mouseX > width / 2 - 60 && mouseX < width / 2 + 60 && mouseY > height / 2 + 50 && mouseY < height / 2 + 90) {
     resetBallGame(); 
     }
   }
