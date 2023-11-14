@@ -22,6 +22,14 @@ let ballGame = {
   gameOverFlag: false,
 };
 
+//Progress vars
+let progress = {
+  streak: 0,
+  typing: 0,
+  sorting: 0,
+  movingBall: 0
+};
+
 //Typing practice vars
 let typing = {
     word: '',
@@ -173,8 +181,15 @@ function screen3() {
 //Progress screen
 function screen4() {
   background(255, 255, 255);
+  fill(250);
+  rect(100, 100, 200);
+  fill(0);
   textSize(25);
-  text('Progress', 100, 50);
+  text('Progress', 200, 50);
+  text(`Streak: ${progress.streak}`, 200, 130);
+  text(`Typing: ${progress.typing}`, 200, 170);
+  text(`Sorting: ${progress.sorting}`, 200, 210);
+  text(`Moving Ball: ${progress.movingBall}`, 200, 250);
   button = createButton('Back');
   button.size(100,50);
   button.position(290, 340);
