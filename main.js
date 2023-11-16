@@ -197,7 +197,7 @@ function screen4() {
 
 //Moving ball exercise
 function screen5() {
-  background(0); 
+  background(0);
   checkClick();
   fill(ballGame.isGreen ? 'green' : 'red');
   ellipse(ballGame.ball.x, ballGame.ball.y, ballGame.ball.size, ballGame.ball.size);
@@ -213,7 +213,9 @@ function screen5() {
     textSize(18);
     textAlign(CENTER, CENTER);
     text('Restart', width / 2, height / 2 + 70);
+    noLoop();
   }
+  checkBounds();
   button = createButton('Back');
   button.size(100,50);
   button.position(290, 340);
@@ -226,6 +228,7 @@ function resetBallGame() {
   ballGame.strikes = 0;
   ballGame.ball.speed = 0; 
   resetBall();
+  ballGame.lastClickTime = millis();
   ballGame.gameOverFlag = false;
   loop(); 
 }
@@ -249,12 +252,27 @@ function checkClick() {
     }
     if (ballGame.strikes >= 3) {
       ballGame.gameOverFlag = true;
-      noLoop(); 
     }
     else{
       resetBall();
     }
   } 
+}
+
+function checkBounds(){
+  if (ballGame.ball.x > 400 || ballGame.ball.x < 0){
+    if (!ballGame.isGreen){
+      ballGame.points++;
+    }
+    else{
+      ballGame.strikes++;
+      if (ballGame.strikes >= 3){
+        ballGame.gameOverFlag = true;
+        return;
+      }
+    }
+    resetBall();
+  }
 }
 
 //End Moving ball exercise
