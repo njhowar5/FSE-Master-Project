@@ -18,7 +18,6 @@ let ballGame = {
   isGreen: false,
   points: 0,
   strikes: 0,
-  lastClickTime: 0,
   gameOverFlag: false,
 };
 
@@ -227,7 +226,6 @@ function resetBallGame() {
   ballGame.strikes = 0;
   ballGame.ball.speed = 0; 
   resetBall();
-  ballGame.lastClickTime = millis();
   ballGame.gameOverFlag = false;
   loop(); 
 }
@@ -246,10 +244,8 @@ function checkClick() {
   if (mouseIsPressed && d < ballGame.ball.size / 2) {
     if ((ballGame.isGreen && d < ballGame.ball.size / 2) || (!ballGame.isGreen && d >= ballGame.ball.size / 2)) {
       ballGame.points++; 
-      ballGame.lastClickTime = millis(); 
     } else {
       ballGame.strikes++;
-      ballGame.lastClickTime = millis();
     }
     if (ballGame.strikes >= 3) {
       ballGame.gameOverFlag = true;
@@ -258,12 +254,7 @@ function checkClick() {
     else{
       resetBall();
     }
-  } else {
-    if (millis() - ballGame.lastClickTime > 4000 && !ballGame.isGreen) {
-      resetBall(); 
-      ballGame.lastClickTime = millis(); 
-    }
-  }
+  } 
 }
 
 //End Moving ball exercise
