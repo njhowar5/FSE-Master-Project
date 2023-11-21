@@ -36,9 +36,26 @@ let typing = {
     chatBoxColor: 255,
 };
 
+//Sorting vars
+let shapes = [],
+  outlines = [],
+  dragging = false,
+  draggedShape = null,
+  gameActive = true,
+  correctMatches = 0,
+  roundStartTime,
+  elapsedTime;
+  const positiveSound = new Audio('positive.mp3');
+  const negativeSound = new Audio('negative.mp3');
+
 function setup() {
   createCanvas(400, 400);
   textAlign(CENTER, CENTER);
+}
+
+function preload() {
+  positiveSound.load();
+  negativeSound.load();
 }
 
 //Switches between screens
@@ -65,7 +82,7 @@ function screen2Setup() {
 }
 //Sorting Setup
 function screen3Setup() {
-
+  startRound();
 }
 //Progress Setup
 function screen4Setup() {
@@ -168,14 +185,107 @@ function resetChatBox() {
 
 //Sorting exercise
 function screen3() {
-  background(255, 255, 255);
-  textSize(25);
-  text('Sorting', 100, 50);
+  background(220);
+
+  if (gameActive) {
+    displayShapes();
+    displayOutlines();
+    displayStopwatch();
+  }
+  if (dragging && draggedShape !== null) {
+    shapes[draggedShape].x = mouseX;
+    shapes[draggedShape].y = mouseY;
+  }
   button = createButton('Back');
   button.size(100,50);
   button.position(290, 340);
   button.mousePressed(mode0);
 }
+
+function startRound() {
+  shapes = [];
+  outlines = [];
+  generateShapes();
+  shapes.forEach(shape => (shape.matched = shape.locked = false));
+  roundStartTime = millis();  
+  elapsedTime = 0; 
+}
+
+function generateShapes() {
+  const availableShapes = shuffle([0, 1, 2, 3, 4, 5], true);
+  const availableOutlines = shuffle([0, 1, 2, 3, 4, 5], true);
+
+  for (let i = 0; i < 6; i++) {
+    const x = width / 4 * (i < 3 ? i + 1 : i - 2);
+    const y = i < 3 ? height / 4 : height / 2;
+    shapes.push({ x, y, type: availableShapes[i], matched: false, locked: false });
+  }
+
+  for (let i = 0; i < 3; i++) {
+    outlines.push({ x: width / 4 * (i + 1), y: height - 50, type: availableOutlines[i] });
+  }
+}
+
+function displayShapes() {
+  shapes.forEach(shape => {
+    fill(200, 100, 100);
+    noStroke();
+    drawShape(shape);
+  });
+}
+
+function displayOutlines() {
+  outlines.forEach((outline, i) => {
+    const size = 60;
+    const isDragging = dragging && draggedShape === i;
+
+    if (!shapes.some(shape => shape.type === outline.type && shape.matched && shape.locked)) {
+      if (outline.y === height - 50) {
+        fill(255, 150);
+        stroke(0);
+      } else {
+        noFill();
+        stroke(isDragging ? color(150) : color(0));
+      }
+      drawShape(outline, size);
+    }
+  });
+}
+function displayStopwatch() {
+  const currentTime = millis();
+  elapsedTime = round((currentTime - roundStartTime) / 1000);
+  textSize(16);
+  fill(0);
+  text(`Time: ${elapsedTime} seconds`, 20, 20);
+}
+
+function drawShape(s, size = 30, fillColor = null) {
+  if (fillColor) fill(fillColor);
+
+  switch (s.type) {
+    case 0: ellipse(s.x, s.y, size, size); break;
+    case 1: rect(s.x - size / 2, s.y - size / 2, size, size); break;
+    case 2: triangle(s.x, s.y - size / 2, s.x - size / 2, s.y + size / 2, s.x + size / 2, s.y + size / 2); break;
+    case 3: drawPolygon(s.x, s.y, size / 2, 5); break;
+    case 4: drawPolygon(s.x, s.y, size / 2, 6); break;
+    case 5: drawDiamond(s.x, s.y, size / 2); break;
+  }
+}
+function drawPolygon(x, y, r, sides) {
+  beginShape();
+  for (let i = 0; i < sides; i++) vertex(x + cos((TWO_PI / sides) * i) * r, y + sin((TWO_PI / sides) * i) * r);
+  endShape(CLOSE);
+}
+function drawDiamond(x, y, r) {
+  beginShape();
+  vertex(x, y - r);
+  vertex(x + r, y);
+  vertex(x, y + r);
+  vertex(x - r, y);
+  endShape(CLOSE);
+}
+
+//End Sorting Screen
 
 //Progress screen
 function screen4() {
@@ -309,11 +419,57 @@ function mousePressed(){
       }
     }
   }
+  if (mode == 2) {
+    console.log("g");
+    if (!gameActive) return;
+      for (let i = 0; i < shapes.length; i++) {
+        if (!shapes[i].matched && dist(mouseX, mouseY, shapes[i].x, shapes[i].y) < 15) {
+          dragging = true;
+          draggedShape = i;
+          break;
+        }
+      }
+  }
   if (mode == 4) {
     if (ballGame.gameOverFlag && mouseX > width / 2 - 60 && mouseX < width / 2 + 60 && mouseY > height / 2 + 50 && mouseY < height / 2 + 90) {
     resetBallGame(); 
     }
   }
+}
+
+function mouseReleased() {
+  if (!gameActive) return;
+
+  if (dragging && draggedShape !== null) {
+    const matchedOutline = outlines.find(outline =>
+      !shapes.some(shape => shape.matched && shape.locked && shape.type === outline.type) &&
+      dist(outline.x, outline.y, shapes[draggedShape].x, shapes[draggedShape].y) < 15
+    );
+    
+    if (matchedOutline && shapes[draggedShape].type === matchedOutline.type) {
+      shapes[draggedShape].matched = shapes[draggedShape].locked = true;
+      correctMatches++;
+      if (correctMatches === 3) {
+        positiveSound.play(); 
+        gameActive = false;
+        setTimeout(() => {
+          gameActive = true;
+          startRound();
+          correctMatches = 0;
+        }, 1000);
+      }
+    } else {
+      negativeSound.play(); 
+      gameActive = false;
+      setTimeout(() => {
+        gameActive = true;
+        startRound();
+        correctMatches = 0;
+      }, 1000);
+    }
+  }
+  dragging = false;
+  draggedShape = null;
 }
 
 //resets back to main screen
