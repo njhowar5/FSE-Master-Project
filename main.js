@@ -1,3 +1,13 @@
+//#05386B Dark Blue
+//#379683 Blue Green
+//#5CDB95 Green
+//#8EE4AF White Green
+//#EDF5E1 Cream White
+//#3AAFA9 Turquoise
+//#2B7A78 Turquoise Grey
+//#17252A Grey Black
+
+
 //Triangle coordinates
 var mode = 0;
 let triangles = [
@@ -6,6 +16,19 @@ let triangles = [
   { points: [150, 200, 200, 300, 250, 200], hover: false, setupFunction: screen4Setup },
   { points: [210, 300, 260, 200, 310, 300], hover: false, setupFunction: screen5Setup }
 ];
+
+let mySound;
+let cols, rows;
+let w = 20; // Width and height of each cell
+let grid = [];
+let stack = [];
+let player;
+let endpoint;
+let playerReachedEndpoint = false;
+let mazeGenerated = false;
+let regenerationOverlay = 150; // Transparency level for the regeneration overlay
+let winTextDisplayed = false;
+let startTime;
 
 //Moving ball vars
 let ballGame = {
@@ -47,15 +70,20 @@ let shapes = [],
   elapsedTime;
   const positiveSound = new Audio('positive.mp3');
   const negativeSound = new Audio('negative.mp3');
-
-function setup() {
-  createCanvas(400, 400);
-  textAlign(CENTER, CENTER);
-}
+  //const song = new Audio('background.mp3');
+  let song;
 
 function preload() {
   positiveSound.load();
   negativeSound.load();
+  //song.load();
+  song = loadSound('background.mp3');
+}
+
+function setup() {
+  createCanvas(400, 400);
+  textAlign(CENTER, CENTER);
+  song.loop();
 }
 
 //Switches between screens
@@ -86,7 +114,21 @@ function screen3Setup() {
 }
 //Progress Setup
 function screen4Setup() {
+  cols = floor(width / w);
+  rows = floor(height / w) - 2; // Remove top two rows
 
+  // Create a 2D array to represent the grid
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      let cell = new Cell(i, j);
+      grid.push(cell);
+    }
+  }
+  resetMaze();
+  // Create endpoint at the bottom-left corner
+  endpoint = createVector(cols - 1, rows - 1);
+  startTime = millis(); // Record the start time
+  roundStartTime = millis();
 }
 //Moving Ball Setup
 function screen5Setup() {
@@ -96,23 +138,26 @@ function screen5Setup() {
 
 //Home screen
 function screen1() {
-  background(204, 128, 255);
-  textSize(25);
-  text('Rehabilitation App', 200, 50);
+  background('#3AAFA9');
+  textSize(35);
+  text('Dexterity Care', 200, 50);
   hover();
+  stroke('#EDF5E1');
+  strokeWeight(2);
   for (let i = 0; i < triangles.length; i++) {
     if (triangles[i].hover) {
-      fill(175);
+      fill('#2B7A78');
     } else {
-      fill(255);
+      fill('#17252A');
     }
     triangle(...triangles[i].points); // Spread the points array
   }
-  fill(0);
+  strokeWeight(0);
+  fill('#EDF5E1');
   textSize(16);
   text('Typing', 200, 160);
   text('Sorting', 140, 270);
-  text('Progress', 200, 230);
+  text('Maze', 200, 230);
   text('Moving \nBall', 263, 270);
   hoverReset();
 }
@@ -139,7 +184,7 @@ function pointInTriangle(x, y, vertices) {
 
 //Typing exercise
 function screen2() {
-  background(240);
+  background('#3AAFA9');
   fill(0);
   text(typing.word, width / 2, height / 2 - 20);
   fill(typing.chatBoxColor);
@@ -158,20 +203,38 @@ function pickRandomWord() {
 }
 
 function keyPressed() {
-  if (keyCode === BACKSPACE) {
-    typing.userInput = typing.userInput.slice(0, -1);
-  } else if (keyCode === ENTER) {
-    checkInput();
-  } else if (keyCode !== SHIFT && keyCode !== CONTROL && keyCode !== ALT) {
-    typing.userInput += key;
+  if (mode == 1) {
+    if (keyCode === BACKSPACE) {
+      typing.userInput = typing.userInput.slice(0, -1);
+    } else if (keyCode === ENTER) {
+      checkInput();
+    } else if (keyCode !== SHIFT && keyCode !== CONTROL && keyCode !== ALT) {
+      typing.userInput += key;
+    }
+  }
+  if (mode == 3) {
+    if (mazeGenerated) {
+      let currentCell = grid[getIndex(player.x, player.y)];
+      if (keyCode === LEFT_ARROW && player.x > 0 && !currentCell.walls[3]) {
+        player.x -= 1;
+      } else if (keyCode === RIGHT_ARROW && player.x < cols - 1 && !currentCell.walls[1]) {
+        player.x += 1;
+      } else if (keyCode === UP_ARROW && player.y > 0 && !currentCell.walls[0]) {
+        player.y -= 1;
+      } else if (keyCode === DOWN_ARROW && player.y < rows - 1 && !currentCell.walls[2]) {
+        player.y += 1;
+      }
+    }
   }
 }
 
 function checkInput() {
   if (typing.userInput === typing.word) {
     typing.chatBoxColor = color(0, 255, 0); 
+    positiveSound.play();
   } else {
     typing.chatBoxColor = color(255, 0, 0);
+    negativeSound.play();
   }
   setTimeout(resetChatBox, 1000);
 }
@@ -185,7 +248,7 @@ function resetChatBox() {
 
 //Sorting exercise
 function screen3() {
-  background(220);
+  background('#3AAFA9');
 
   if (gameActive) {
     displayShapes();
@@ -197,8 +260,8 @@ function screen3() {
     shapes[draggedShape].y = mouseY;
   }
   button = createButton('Back');
-  button.size(100,50);
-  button.position(290, 340);
+  button.size(100,40);
+  button.position(290, 10);
   button.mousePressed(mode0);
 }
 
@@ -228,7 +291,7 @@ function generateShapes() {
 
 function displayShapes() {
   shapes.forEach(shape => {
-    fill(200, 100, 100);
+    fill('#af3a40');
     noStroke();
     drawShape(shape);
   });
@@ -287,29 +350,309 @@ function drawDiamond(x, y, r) {
 
 //End Sorting Screen
 
-//Progress screen
+//Maze screen
 function screen4() {
-  background(255, 255, 255);
-  fill(250);
-  rect(100, 100, 200);
-  fill(0);
-  textSize(25);
-  text('Progress', 200, 50);
-  text(`Streak: ${progress.streak}`, 200, 130);
-  text(`Typing: ${progress.typing}`, 200, 170);
-  text(`Sorting: ${progress.sorting}`, 200, 210);
-  text(`Moving Ball: ${progress.movingBall}`, 200, 250);
   button = createButton('Back');
-  button.size(100,50);
-  button.position(290, 340);
+  button.size(100,40);
+  button.position(300, 0);
   button.mousePressed(mode0);
-}
+
+    background(150);
+    // Draw the grid
+    for (let i = 0; i < grid.length; i++) {
+      grid[i].show();
+    }
+    
+    if (mazeGenerated) {
+    elapsedTime = millis() - startTime;
+    let seconds = int(elapsedTime / 1000);
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(16);
+    text("Time: " + seconds + " seconds", 10, 10);
+    }
+    // Draw the regeneration overlay if the maze is being regenerated
+    if (!mazeGenerated) {
+      fill(0, 0, 0, regenerationOverlay);
+      noStroke();
+      rect(0, 40, width, height - 40);
+  
+      // Add text on the regeneration overlay
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(24);
+      text("Maze Generating . . .", width / 2, height / 2);
+      if (winTextDisplayed) {
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(24);
+      text("You Win!", 200, 150);
+    }
+    }
+  
+    // DFS algorithm for maze generation
+    if (!mazeGenerated && stack.length > 0) {
+      let current = stack[stack.length - 1];
+      let next = current.checkNeighbors();
+  
+      if (next) {
+        next.visited = true;
+  
+        // Remove the walls between the current and next cell
+        removeWalls(current, next);
+  
+        stack.push(next);
+      } else {
+        // If no neighbors are available, backtrack
+        stack.pop();
+      }
+    } else if (!mazeGenerated) {
+      // Maze generation is complete
+      console.log("Maze generated!");
+      mazeGenerated = true;
+      winTextDisplayed = false;
+      // Create player at the top-left corner
+      player = new Player(0, 0); // Pass the initial position
+      startTime = millis(); // Start the timer
+    }
+
+    // Draw the player if it exists and has not reached the endpoint
+    if (player && !playerReachedEndpoint) {
+      player.show();
+  
+      // Check if the player has reached the endpoint
+      if (player.x === endpoint.x && player.y === endpoint.y) {
+        console.log("You reached the endpoint!");
+        noLoop(); // Stop the draw loop
+        playerReachedEndpoint = true; // Set the flag
+        winTextDisplayed = true;
+  
+        // Delete the player element
+        player = undefined;
+  
+        // Regenerate maze and reset player position
+        resetMaze();
+      }
+  
+      // Move the player based on arrow key input
+      player.move();
+    }
+  }
+
+  function resetMaze() {
+    stack = [];
+    mazeGenerated = false;
+    playerReachedEndpoint = false; // Reset the flag
+  
+    // Reset player to the top-left corner
+    player = new Player(0, 0);
+  
+    // Reset grid cells
+    grid = [];
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        let cell = new Cell(i, j);
+        grid.push(cell);
+      }
+  }
+  
+    // Start DFS from the top-left cell of the modified grid
+    let start = grid[0];
+    start.visited = true;
+    stack.push(start);
+  
+    // Create endpoint at the bottom-left corner
+    endpoint = createVector(cols - 1, rows - 1);
+  
+    loop(); // Restart the draw loop
+  }
+
+  class Cell {
+    constructor(i, j) {
+      this.i = i;
+      this.j = j;
+      this.visited = false;
+  
+      // Walls: [top, right, bottom, left]
+      this.walls = [true, true, true, true];
+    }
+  
+    show() {
+      let x = this.i * w;
+      let y = this.j * w + 2 * w; // Adjust for the removed top two rows
+  
+      stroke(0);
+      strokeWeight(2);
+      
+      if (this.walls[0]) {
+        line(x, y, x + w, y);
+      }
+      if (this.walls[1]) {
+        line(x + w, y, x + w, y + w);
+      }
+      if (this.walls[2]) {
+        line(x + w, y + w, x, y + w);
+      }
+      if (this.walls[3]) {
+        line(x, y + w, x, y);
+      }
+  
+      if (this.visited) {
+        noStroke();
+        fill(17, 100, 102, 100);
+        rect(x, y, w, w);
+      }
+      if (this.i === 0 && this.j === 0) { // Adjusted for the removed top two rows
+        fill(0, 255, 0);
+        rect(x, y, w, w);
+      }
+  
+      // Change the color of the end cell to red
+      if (this.i === cols - 1 && this.j === rows - 1) { // Adjusted for the removed top two rows
+        fill(255, 0, 0);
+        rect(x, y, w, w);
+      }
+    }
+  
+    index(i, j) {
+      if (i < 0 || j < 0 || i >= cols || j >= rows) {
+        return -1;
+      }
+      return i + j * cols; // No need to subtract 2 here
+    }
+  
+    checkNeighbors() {
+      let neighbors = [];
+  
+      let top = grid[this.index(this.i, this.j - 1)];
+      let right = grid[this.index(this.i + 1, this.j)];
+      let bottom = grid[this.index(this.i, this.j + 1)];
+      let left = grid[this.index(this.i - 1, this.j)];
+  
+      if (top && !top.visited) {
+        neighbors.push(top);
+      }
+      if (right && !right.visited) {
+        neighbors.push(right);
+      }
+      if (bottom && !bottom.visited) {
+        neighbors.push(bottom);
+      }
+      if (left && !left.visited) {
+        neighbors.push(left);
+      }
+  
+      if (neighbors.length > 0) {
+        let r = floor(random(0, neighbors.length));
+        return neighbors[r];
+      } else {
+        return undefined;
+      }
+    }
+    hasUnvisitedNeighbors() {
+    let neighbors = this.getAdjacentCells();
+    for (let neighbor of neighbors) {
+      if (!neighbor.visited) {
+        return true;
+      }
+    }
+    return false;
+  }
+    getAdjacentCells() {
+      let neighbors = [];
+  
+      let top = grid[this.index(this.i, this.j - 1)];
+      let right = grid[this.index(this.i + 1, this.j)];
+      let bottom = grid[this.index(this.i, this.j + 1)];
+      let left = grid[this.index(this.i - 1, this.j)];
+  
+      if (top) {
+        neighbors.push(top);
+      }
+      if (right) {
+        neighbors.push(right);
+      }
+      if (bottom) {
+        neighbors.push(bottom);
+      }
+      if (left) {
+        neighbors.push(left);
+      }
+  
+      return neighbors;
+    }
+  }
+  
+  function removeWalls(a, b) {
+    let x = a.i - b.i;
+    if (x === 1) {
+      a.walls[3] = false;
+      b.walls[1] = false;
+    } else if (x === -1) {
+      a.walls[1] = false;
+      b.walls[3] = false;
+    }
+  
+    let y = a.j - b.j;
+    if (y === 1) {
+      a.walls[0] = false;
+      b.walls[2] = false;
+    } else if (y === -1) {
+      a.walls[2] = false;
+      b.walls[0] = false;
+    }
+  }
+  
+  class Player {
+    constructor(x, y) {
+      this.x = x; // Initial x position
+      this.y = y; // Initial y position, add 2 to adjust for the removed top two rows
+      this.moveLeft = false;
+      this.moveRight = false;
+      this.moveUp = false;
+      this.moveDown = false;
+    }
+  
+    show() {
+      if (mazeGenerated) {
+        fill(0, 0, 255);
+        noStroke();
+        ellipse(this.x * w + w / 2, (this.y + 2) * w + w / 2, w / 2);
+        // Add (this.y + 2) to adjust for the removed top two rows
+      }
+    }
+  
+    move() {
+      // Get adjacent cells without checking if they are visited
+      let adjacentCells = grid[getIndex(this.x, this.y)].getAdjacentCells();
+  
+      // Move the player based on arrow key input
+      if (this.moveLeft && this.x > 0 && !grid[getIndex(this.x, this.y)].walls[3]) {
+        this.x -= 1;
+      } else if (this.moveRight && this.x < cols - 1 && !grid[getIndex(this.x, this.y)].walls[1]) {
+        this.x += 1;
+      } else if (this.moveUp && this.y > 0 && !grid[getIndex(this.x, this.y)].walls[0]) {
+        this.y -= 1;
+      } else if (this.moveDown && this.y < rows - 1 && !grid[getIndex(this.x, this.y)].walls[2]) {
+        this.y += 1;
+      }
+    }
+  }
+  
+  function getIndex(i, j) {
+    if (i < 0 || j < 0 || i >= cols || j >= rows) {
+      return -1;
+    }
+    return i + j * cols;
+  }
+
+//End Maze
 
 //Moving ball exercise
 function screen5() {
-  background(0);
+  background('#4E4E50');
   checkClick();
-  fill(ballGame.isGreen ? 'green' : 'red');
+  fill(ballGame.isGreen ? '#5CDB95' : 'red');
   ellipse(ballGame.ball.x, ballGame.ball.y, ballGame.ball.size, ballGame.ball.size);
   ballGame.ball.x += ballGame.ball.speed;
   textSize(24);
@@ -474,6 +817,7 @@ function mouseReleased() {
 
 //resets back to main screen
 function mode0() {
+  textAlign(CENTER, CENTER);
   if (mode == 4) {
    resetBallGame();   
   }
