@@ -10,12 +10,7 @@
 
 //Triangle coordinates
 var mode = 0;
-let triangles = [
-  { points: [150, 190, 200, 90, 250, 190], hover: false, setupFunction: screen2Setup },
-  { points: [90, 300, 140, 200, 190, 300], hover: false, setupFunction: screen3Setup },
-  { points: [150, 200, 200, 300, 250, 200], hover: false, setupFunction: screen4Setup },
-  { points: [210, 300, 260, 200, 310, 300], hover: false, setupFunction: screen5Setup }
-];
+let buttons = [];
 
 let mySound;
 let cols, rows;
@@ -83,13 +78,17 @@ function preload() {
 function setup() {
   createCanvas(400, 400);
   textAlign(CENTER, CENTER);
+  // Initialize buttons
+  buttons.push(new TriangleButton([150, 190, 200, 90, 250, 190], screen2Setup));
+  buttons.push(new TriangleButton([90, 300, 140, 200, 190, 300], screen3Setup));
+  buttons.push(new TriangleButton([150, 200, 200, 300, 250, 200], screen4Setup));
+  buttons.push(new TriangleButton([210, 300, 260, 200, 310, 300], screen5Setup));
   song.loop();
 }
 
 //Switches between screens
 function draw() {
   background(220);
-
   if (mode == 0) {
     screen1();
   } else if (mode == 1) {
@@ -141,25 +140,16 @@ function screen1() {
   background('#3AAFA9');
   textSize(35);
   text('Dexterity Care', 200, 50);
-  hover();
-  stroke('#EDF5E1');
-  strokeWeight(2);
-  for (let i = 0; i < triangles.length; i++) {
-    if (triangles[i].hover) {
-      fill('#2B7A78');
-    } else {
-      fill('#17252A');
-    }
-    triangle(...triangles[i].points); // Spread the points array
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].checkHover();
+    buttons[i].display();
   }
-  strokeWeight(0);
   fill('#EDF5E1');
   textSize(16);
   text('Typing', 200, 160);
   text('Sorting', 140, 270);
   text('Maze', 200, 230);
   text('Moving \nBall', 263, 270);
-  hoverReset();
 }
 
 // Function to check if a point (x, y) is inside a triangle defined by its vertices
@@ -319,7 +309,7 @@ function displayStopwatch() {
   elapsedTime = round((currentTime - roundStartTime) / 1000);
   textSize(16);
   fill(0);
-  text(`Time: ${elapsedTime} seconds`, 20, 20);
+  text(`Time: ${elapsedTime} seconds`,65, 20);
 }
 
 function drawShape(s, size = 30, fillColor = null) {
@@ -408,7 +398,6 @@ function screen4() {
       }
     } else if (!mazeGenerated) {
       // Maze generation is complete
-      console.log("Maze generated!");
       mazeGenerated = true;
       winTextDisplayed = false;
       // Create player at the top-left corner
@@ -422,7 +411,6 @@ function screen4() {
   
       // Check if the player has reached the endpoint
       if (player.x === endpoint.x && player.y === endpoint.y) {
-        console.log("You reached the endpoint!");
         noLoop(); // Stop the draw loop
         playerReachedEndpoint = true; // Set the flag
         winTextDisplayed = true;
@@ -755,15 +743,14 @@ function hoverReset() {
 
 function mousePressed(){
   if (mode == 0) {
-    for (let i = 0; i < triangles.length; i++) {
-      if (pointInTriangle(mouseX, mouseY, triangles[i].points)) {
+    for (let i = 0; i < buttons.length; i++) {
+      if (buttons[i].hover) {
         mode = i + 1;
-        triangles[i].setupFunction();
+        buttons[i].setupFunction();
       }
     }
   }
   if (mode == 2) {
-    console.log("g");
     if (!gameActive) return;
       for (let i = 0; i < shapes.length; i++) {
         if (!shapes[i].matched && dist(mouseX, mouseY, shapes[i].x, shapes[i].y) < 15) {
@@ -817,6 +804,9 @@ function mouseReleased() {
 
 //resets back to main screen
 function mode0() {
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].hover = false;
+  }
   textAlign(CENTER, CENTER);
   if (mode == 4) {
    resetBallGame();   
