@@ -7,21 +7,19 @@
 //#2B7A78 Turquoise Grey
 //#17252A Grey Black
 
-
-//Triangle coordinates
 var mode = 0;
 let buttons = [];
 
-let mySound;
+
 let cols, rows;
-let w = 20; // Width and height of each cell
+let w = 20; //Width and height of each cell
 let grid = [];
 let stack = [];
 let player;
 let endpoint;
 let playerReachedEndpoint = false;
 let mazeGenerated = false;
-let regenerationOverlay = 150; // Transparency level for the regeneration overlay
+let regenerationOverlay = 150; //Transparency level for the regeneration overlay
 let winTextDisplayed = false;
 let startTime;
 
@@ -63,10 +61,11 @@ let shapes = [],
   correctMatches = 0,
   roundStartTime,
   elapsedTime;
-  const positiveSound = new Audio('positive.mp3');
-  const negativeSound = new Audio('negative.mp3');
-  //const song = new Audio('background.mp3');
-  let song;
+
+//Sound vars
+const positiveSound = new Audio('positive.mp3');
+const negativeSound = new Audio('negative.mp3');
+let song;
 
 function preload() {
   positiveSound.load();
@@ -78,7 +77,7 @@ function preload() {
 function setup() {
   createCanvas(400, 400);
   textAlign(CENTER, CENTER);
-  // Initialize buttons
+  //Initialize buttons
   buttons.push(new TriangleButton([150, 190, 200, 90, 250, 190], screen2Setup));
   buttons.push(new TriangleButton([90, 300, 140, 200, 190, 300], screen3Setup));
   buttons.push(new TriangleButton([150, 200, 200, 300, 250, 200], screen4Setup));
@@ -114,9 +113,9 @@ function screen3Setup() {
 //Progress Setup
 function screen4Setup() {
   cols = floor(width / w);
-  rows = floor(height / w) - 2; // Remove top two rows
+  rows = floor(height / w) - 2; //Remove top two rows
 
-  // Create a 2D array to represent the grid
+  //Create a 2D array for the maze grid
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
       let cell = new Cell(i, j);
@@ -124,11 +123,11 @@ function screen4Setup() {
     }
   }
   resetMaze();
-  // Create endpoint at the bottom-left corner
   endpoint = createVector(cols - 1, rows - 1);
-  startTime = millis(); // Record the start time
+  startTime = millis();
   roundStartTime = millis();
 }
+
 //Moving Ball Setup
 function screen5Setup() {
   resetBallGame();
@@ -161,41 +160,12 @@ function screen2() {
   rect(50, height / 2, 300, 40);
   fill(0);
   text(typing.userInput, width / 2, height / 2 + 20);
-  button = createButton('Back');
-  button.size(100,50);
-  button.position(290, 340);
-  button.mousePressed(mode0);
+  backButton(290, 340, 100, 50);
 }
 
 function pickRandomWord() {
-  let words = ["PRECISION", "COMPUTER", "PROGRAMMING", "DEVELOPMENT", "INTERFACE"];
+  let words = ["Precision", "Computer", "Programming", "Development", "Interface"];
   typing.word = random(words);
-}
-
-function keyPressed() {
-  if (mode == 1) {
-    if (keyCode === BACKSPACE) {
-      typing.userInput = typing.userInput.slice(0, -1);
-    } else if (keyCode === ENTER) {
-      checkInput();
-    } else if (keyCode !== SHIFT && keyCode !== CONTROL && keyCode !== ALT) {
-      typing.userInput += key;
-    }
-  }
-  if (mode == 3) {
-    if (mazeGenerated) {
-      let currentCell = grid[getIndex(player.x, player.y)];
-      if (keyCode === LEFT_ARROW && player.x > 0 && !currentCell.walls[3]) {
-        player.x -= 1;
-      } else if (keyCode === RIGHT_ARROW && player.x < cols - 1 && !currentCell.walls[1]) {
-        player.x += 1;
-      } else if (keyCode === UP_ARROW && player.y > 0 && !currentCell.walls[0]) {
-        player.y -= 1;
-      } else if (keyCode === DOWN_ARROW && player.y < rows - 1 && !currentCell.walls[2]) {
-        player.y += 1;
-      }
-    }
-  }
 }
 
 function checkInput() {
@@ -229,10 +199,7 @@ function screen3() {
     shapes[draggedShape].x = mouseX;
     shapes[draggedShape].y = mouseY;
   }
-  button = createButton('Back');
-  button.size(100,40);
-  button.position(290, 10);
-  button.mousePressed(mode0);
+  backButton(290, 10, 100, 50);
 }
 
 function startRound() {
@@ -322,13 +289,10 @@ function drawDiamond(x, y, r) {
 
 //Maze screen
 function screen4() {
-  button = createButton('Back');
-  button.size(100,40);
-  button.position(300, 0);
-  button.mousePressed(mode0);
+  backButton(300, 2, 97, 35);
 
     background(150);
-    // Draw the grid
+    //Draw the grid
     for (let i = 0; i < grid.length; i++) {
       grid[i].show();
     }
@@ -341,13 +305,13 @@ function screen4() {
     textSize(16);
     text("Time: " + seconds + " seconds", 10, 10);
     }
-    // Draw the regeneration overlay if the maze is being regenerated
+    //Draw the regeneration overlay if the maze is being regenerated
     if (!mazeGenerated) {
       fill(0, 0, 0, regenerationOverlay);
       noStroke();
       rect(0, 40, width, height - 40);
   
-      // Add text on the regeneration overlay
+      //Add text on the regeneration overlay
       fill(255);
       textAlign(CENTER, CENTER);
       textSize(24);
@@ -360,7 +324,7 @@ function screen4() {
     }
     }
   
-    // DFS algorithm for maze generation
+    //DFS algorithm for maze generation
     if (!mazeGenerated && stack.length > 0) {
       let current = stack[stack.length - 1];
       let next = current.checkNeighbors();
@@ -368,41 +332,41 @@ function screen4() {
       if (next) {
         next.visited = true;
   
-        // Remove the walls between the current and next cell
+        //Remove the walls between the current and next cell
         removeWalls(current, next);
   
         stack.push(next);
       } else {
-        // If no neighbors are available, backtrack
+        //If no neighbors are available, backtrack
         stack.pop();
       }
     } else if (!mazeGenerated) {
-      // Maze generation is complete
+      //Maze generation is complete
       mazeGenerated = true;
       winTextDisplayed = false;
-      // Create player at the top-left corner
-      player = new Player(0, 0); // Pass the initial position
-      startTime = millis(); // Start the timer
+      //Create player at the top-left corner
+      player = new Player(0, 0); //Pass the initial position
+      startTime = millis(); //Start the timer
     }
 
-    // Draw the player if it exists and has not reached the endpoint
+    //Draw the player if it exists and has not reached the endpoint
     if (player && !playerReachedEndpoint) {
       player.show();
   
-      // Check if the player has reached the endpoint
+      //Check if the player has reached the endpoint
       if (player.x === endpoint.x && player.y === endpoint.y) {
-        noLoop(); // Stop the draw loop
-        playerReachedEndpoint = true; // Set the flag
+        noLoop(); //Stop the draw loop
+        playerReachedEndpoint = true; //Set the flag
         winTextDisplayed = true;
   
-        // Delete the player element
+        //Delete the player element
         player = undefined;
   
-        // Regenerate maze and reset player position
+        //Regenerate maze and reset player position
         resetMaze();
       }
   
-      // Move the player based on arrow key input
+      //Move the player based on arrow key input
       player.move();
     }
   }
@@ -410,12 +374,12 @@ function screen4() {
   function resetMaze() {
     stack = [];
     mazeGenerated = false;
-    playerReachedEndpoint = false; // Reset the flag
+    playerReachedEndpoint = false; //Reset the flag
   
-    // Reset player to the top-left corner
+    //Reset player to the top-left corner
     player = new Player(0, 0);
   
-    // Reset grid cells
+    //Reset grid cells
     grid = [];
     for (let j = 0; j < rows; j++) {
       for (let i = 0; i < cols; i++) {
@@ -424,15 +388,15 @@ function screen4() {
       }
   }
   
-    // Start DFS from the top-left cell of the modified grid
+    //Start DFS algorithm from the top-left cell of the grid
     let start = grid[0];
     start.visited = true;
     stack.push(start);
   
-    // Create endpoint at the bottom-left corner
+    //Create endpoint at the bottom-left corner
     endpoint = createVector(cols - 1, rows - 1);
   
-    loop(); // Restart the draw loop
+    loop(); //Restart the draw loop
   }
 
   class Cell {
@@ -441,13 +405,13 @@ function screen4() {
       this.j = j;
       this.visited = false;
   
-      // Walls: [top, right, bottom, left]
+      //Walls: [top, right, bottom, left]
       this.walls = [true, true, true, true];
     }
   
     show() {
       let x = this.i * w;
-      let y = this.j * w + 2 * w; // Adjust for the removed top two rows
+      let y = this.j * w + 2 * w;
   
       stroke(0);
       strokeWeight(2);
@@ -470,13 +434,14 @@ function screen4() {
         fill(17, 100, 102, 100);
         rect(x, y, w, w);
       }
-      if (this.i === 0 && this.j === 0) { // Adjusted for the removed top two rows
+      //Change the color of the start cell to green
+      if (this.i === 0 && this.j === 0) {
         fill(0, 255, 0);
         rect(x, y, w, w);
       }
   
-      // Change the color of the end cell to red
-      if (this.i === cols - 1 && this.j === rows - 1) { // Adjusted for the removed top two rows
+      //Change the color of the end cell to red
+      if (this.i === cols - 1 && this.j === rows - 1) {
         fill(255, 0, 0);
         rect(x, y, w, w);
       }
@@ -486,7 +451,7 @@ function screen4() {
       if (i < 0 || j < 0 || i >= cols || j >= rows) {
         return -1;
       }
-      return i + j * cols; // No need to subtract 2 here
+      return i + j * cols;
     }
   
     checkNeighbors() {
@@ -573,28 +538,28 @@ function screen4() {
   
   class Player {
     constructor(x, y) {
-      this.x = x; // Initial x position
-      this.y = y; // Initial y position, add 2 to adjust for the removed top two rows
+      this.x = x;
+      this.y = y;
       this.moveLeft = false;
       this.moveRight = false;
       this.moveUp = false;
       this.moveDown = false;
     }
-  
+    //Creates an ellipse to represent the player
     show() {
       if (mazeGenerated) {
         fill(0, 0, 255);
         noStroke();
         ellipse(this.x * w + w / 2, (this.y + 2) * w + w / 2, w / 2);
-        // Add (this.y + 2) to adjust for the removed top two rows
       }
     }
   
+    //Checks walls in the direction being moved and adjusts player position if there are no walls in that direction
     move() {
-      // Get adjacent cells without checking if they are visited
+      //Get adjacent cells without checking if they are visited
       let adjacentCells = grid[getIndex(this.x, this.y)].getAdjacentCells();
   
-      // Move the player based on arrow key input
+      //Move the player based on arrow key input
       if (this.moveLeft && this.x > 0 && !grid[getIndex(this.x, this.y)].walls[3]) {
         this.x -= 1;
       } else if (this.moveRight && this.x < cols - 1 && !grid[getIndex(this.x, this.y)].walls[1]) {
@@ -606,6 +571,7 @@ function screen4() {
       }
     }
   }
+  
   
   function getIndex(i, j) {
     if (i < 0 || j < 0 || i >= cols || j >= rows) {
@@ -637,10 +603,7 @@ function screen5() {
     noLoop();
   }
   checkBounds();
-  button = createButton('Back');
-  button.size(100,50);
-  button.position(290, 340);
-  button.mousePressed(mode0);
+  backButton(290, 340, 100, 50);
 }
 
 //reset moving ball game
@@ -757,6 +720,32 @@ function mouseReleased() {
   }
   dragging = false;
   draggedShape = null;
+}
+
+function keyPressed() {
+  if (mode == 1) {
+    if (keyCode === BACKSPACE) {
+      typing.userInput = typing.userInput.slice(0, -1);
+    } else if (keyCode === ENTER) {
+      checkInput();
+    } else if (keyCode !== SHIFT && keyCode !== CONTROL && keyCode !== ALT) {
+      typing.userInput += key;
+    }
+  }
+  if (mode == 3) {
+    if (mazeGenerated) {
+      let currentCell = grid[getIndex(player.x, player.y)];
+      if (keyCode === LEFT_ARROW && player.x > 0 && !currentCell.walls[3]) {
+        player.x -= 1;
+      } else if (keyCode === RIGHT_ARROW && player.x < cols - 1 && !currentCell.walls[1]) {
+        player.x += 1;
+      } else if (keyCode === UP_ARROW && player.y > 0 && !currentCell.walls[0]) {
+        player.y -= 1;
+      } else if (keyCode === DOWN_ARROW && player.y < rows - 1 && !currentCell.walls[2]) {
+        player.y += 1;
+      }
+    }
+  }
 }
 
 //resets back to main screen
