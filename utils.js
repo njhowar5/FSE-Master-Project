@@ -40,3 +40,28 @@ class TriangleButton {
     return alpha > 0 && beta > 0 && gamma > 0;
   }
 }
+
+function onButtonHover() {
+  isButtonHovered = true;
+  button.style('background-color', '#379683')
+}
+
+function onButtonOut() {
+  isButtonHovered = false;
+  button.style('background-color', '#17252A')
+}
+
+function backButton(x, y, w, h) {
+  button = createButton('Back');
+  button.position(x, y);
+  button.size(w, h);
+  //button.style('padding', '10px');
+  button.style('font-size', '16px');
+  button.style('background-color', '#17252A')
+  button.style('color', '#EDF5E1')
+  button.style('border', '2px solid #EDF5E1')
+  button.style('border-radius', '5px')
+  button.mouseOver(onButtonHover);
+  button.mouseOut(onButtonOut);
+  button.mousePressed(mode0);
+}
