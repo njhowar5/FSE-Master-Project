@@ -152,26 +152,6 @@ function screen1() {
   text('Moving \nBall', 263, 270);
 }
 
-// Function to check if a point (x, y) is inside a triangle defined by its vertices
-function pointInTriangle(x, y, vertices) {
-  let x1 = vertices[0];
-  let y1 = vertices[1];
-  let x2 = vertices[2];
-  let y2 = vertices[3];
-  let x3 = vertices[4];
-  let y3 = vertices[5];
-
-  // Calculate coordinates
-  let alpha = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) /
-    ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
-  let beta = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) /
-    ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
-  let gamma = 1 - alpha - beta;
-  // Check if the point is inside the triangle
-  return alpha > 0 && beta > 0 && gamma > 0;
-}
-//End home screen
-
 //Typing exercise
 function screen2() {
   background('#3AAFA9');
@@ -717,29 +697,6 @@ function checkBounds(){
 }
 
 //End Moving ball exercise
-
-//checks if mouse is hovering over screen buttons
-function buttonCheck(x,y,w,h){
-  if ((mouseX >= x && mouseX <= x + w) && (mouseY >= y && mouseY <= y + h)) return true;
-  else return false;
-}
-
-//To check if the mouse is hovering over the triangles
-function hover() {
-  for (let i = 0; i < triangles.length; i++) {
-    if (pointInTriangle(mouseX, mouseY, triangles[i].points)) {
-      triangles[i].hover = true;
-    }
-  }
-}
-
-
-//reset to check hover again
-function hoverReset() {
-  for (let i = 0; i < triangles.length; i++) {
-    triangles[i].hover = false;
-  }
-}
 
 function mousePressed(){
   if (mode == 0) {
