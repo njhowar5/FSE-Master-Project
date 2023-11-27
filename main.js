@@ -1,12 +1,3 @@
-//#05386B Dark Blue
-//#379683 Blue Green
-//#5CDB95 Green
-//#8EE4AF White Green
-//#EDF5E1 Cream White
-//#3AAFA9 Turquoise
-//#2B7A78 Turquoise Grey
-//#17252A Grey Black
-
 var mode = 0;
 let buttons = [];
 
@@ -48,8 +39,12 @@ let progress = {
 //Typing practice vars
 let typing = {
     word: '',
+    previousWord: '',
     userInput: '',
     chatBoxColor: 255,
+    startTime: null,
+    charactersTyped: 0,
+    wpm: 0
 };
 
 //Sorting vars
@@ -105,6 +100,7 @@ function draw() {
 function screen2Setup() {
   textSize(32);
   pickRandomWord();
+  typing.wpm = 0;
 }
 //Sorting Setup
 function screen3Setup() {
@@ -161,17 +157,25 @@ function screen2() {
   fill(0);
   text(typing.userInput, width / 2, height / 2 + 20);
   backButton(290, 340, 100, 50);
+  text(`WPM: ${typing.wpm}`, width / 2, height - 20);
 }
 
 function pickRandomWord() {
   let words = ["Precision", "Computer", "Programming", "Development", "Interface"];
   typing.word = random(words);
+  while (typing.word === typing.previousWord) {
+      typing.word = random(words);
+  }
+  typing.previousWord = typing.word;
 }
 
 function checkInput() {
   if (typing.userInput === typing.word) {
     typing.chatBoxColor = color(0, 255, 0); 
     positiveSound.play();
+    typing.charactersTyped += typing.word.length;
+    const elapsedMinutes = (millis() - typing.startTime) / 1000 / 60;
+    typing.wpm = Math.round((typing.charactersTyped / 5) / elapsedMinutes);
   } else {
     typing.chatBoxColor = color(255, 0, 0);
     negativeSound.play();
@@ -182,6 +186,8 @@ function resetChatBox() {
   typing.userInput = "";
   typing.chatBoxColor = 255;
   pickRandomWord();
+  typing.startTime = millis();
+  typing.charactersTyped = 0;
 }
 
 //End Typing exercise
@@ -516,23 +522,23 @@ function screen4() {
     }
   }
   
-  function removeWalls(a, b) {
-    let x = a.i - b.i;
+  function removeWalls(current, next) {
+    let x = current.i - next.i;
     if (x === 1) {
-      a.walls[3] = false;
-      b.walls[1] = false;
+      current.walls[3] = false;
+      next.walls[1] = false;
     } else if (x === -1) {
-      a.walls[1] = false;
-      b.walls[3] = false;
+      current.walls[1] = false;
+      next.walls[3] = false;
     }
   
-    let y = a.j - b.j;
+    let y = current.j - next.j;
     if (y === 1) {
-      a.walls[0] = false;
-      b.walls[2] = false;
+      current.walls[0] = false;
+      next.walls[2] = false;
     } else if (y === -1) {
-      a.walls[2] = false;
-      b.walls[0] = false;
+      current.walls[2] = false;
+      next.walls[0] = false;
     }
   }
   
